@@ -118,7 +118,7 @@ class Trainer:
         return self._pokemon_dic[pokemon_name]
 
     def get_pokemon_list(self):
-        """returns a list of Pokemon names the trainer has"""
+        """returns a list of Pokemon object the trainer has"""
         pokemon_list = []
         for pokemon in self._pokemon_dic:
             pokemon_list.append(pokemon)
@@ -127,10 +127,13 @@ class Trainer:
     def ready_for_battle(self):
         """returns boolean to determine if trainer has pokemon available for battle"""
         trainer_pokemon_count = 0
+
         for pokemon in self.get_pokemon_dic():
             pokemon_object = self.get_pokemon_object(pokemon)
             if pokemon_object.check_pokemon_availability():
                 trainer_pokemon_count += 1
+        print(f"DEBUG: trainer pokemon availability count {trainer_pokemon_count}")
+
         if trainer_pokemon_count == 0:
             self._battle_ready = False
         return self._battle_ready
@@ -253,6 +256,7 @@ class PokemonBattle:
                     self.still_playing(self._trainer)
                     print(f"DEBUG2: is opponent battle ready {self._trainer.get_battle_ready()}")
                     print(f"DEBUG3: is opponent's pokemon ready? {trainer_pokemon_object.check_pokemon_availability()}")
+                    print(f"DEBUG4: who is in opponenet's pokemon list? {self._trainer.get_pokemon_list}")
                     move_count += 1
 
             # display updated health bar
