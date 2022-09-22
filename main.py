@@ -97,7 +97,6 @@ class Pokemon:
         self._battle_ready = False
 
 
-
 class Bag:
     """Represents the user's bag and the items inside of it given their name and their corresponding healing points"""
 
@@ -320,16 +319,20 @@ class PokemonBattle:
 
 
 
-
+row_num = random.randint(1,59)
+pokedata = pokedex[row_num]
 
 
 Charizard = Pokemon('Charizard', 'Fire', 100, 100, {'Flamethrower': 20, 'Fly': 15, 'Blast Burn': 40, 'Fire Punch': 30})
 Blastoise = Pokemon('Blastoise', 'Water', 90, 60, {'Water Gun': 20, 'Bubblebeam': 10, 'Hydro Pump': 40, 'Surf': 30})
 Venusaur = Pokemon('Venusaur', 'Grass', 120, 30, {'Vine Wip': 20, 'Razor Leaf': 10, 'Earthquake': 40, 'Frenzy Plant': 30})
 
+
+pokemon_1 = Pokemon(pokedata[0], pokedata[1], int(pokedata[2]), int(pokedata[3]), {'Flamethrower': 20, 'Fly': 15, 'Blast Burn': 40, 'Fire Punch': 30})
 player_name = input("Player, what is your name? ")
 player_object = Trainer(player_name)
 player_object.add_pokemon(Charizard)
+player_object.add_pokemon(pokemon_1)
 
 grass_trainer = Trainer("MossHead")
 grass_trainer.add_pokemon(Venusaur)
