@@ -1,0 +1,27 @@
+element,move,power,accuracy
+electric,Thunder Shock,40,100
+electric,Spark,60,100
+electric,Thunder Punch,70,75
+electric,Thunderbolt,90,75
+electric,Zap Cannon,90,50
+electric,Thunder,110,50
+fire,Ember,40,100
+fire,Fire Spin,40,100
+fire,Fire Punch,80,50
+fire,Flamethrower,90,50
+fire,Fire Blast,110,25
+grass,Vine Whip,50,100
+grass,Razor Leaf,60,100
+grass,Petal Dance,60,75
+grass,Solar Beam,120,25
+normal,Barrage,30,100
+normal,Scratch,35,100
+normal,Body Slam,40,100
+normal,Stomp,50,75
+normal,Strength,70,50
+water,Bubble,40,100
+water,Water Gun,40,100
+water,Bubble Beam,60,75
+water,Water Pulse,70,75
+water,Surf,80,100
+water,Hydro Pump,110,25

@@ -2,6 +2,23 @@ import random
 
 from pokemon_art import pokemon_sign, transition
 
+import csv
+
+pokemon_list = open("pokemon_list.csv", "r")
+reader_1 = csv.reader(pokemon_list)
+
+move_list = open("move_list.csv", "r")
+reader_2 = csv.reader(move_list)
+
+pokedex = []
+pokedata_moves = []
+
+for row in reader_1:
+    pokedex.append(row)
+
+for row in reader_2:
+    pokedata_moves.append(row)
+
 
 class Pokemon:
     """Represents a Pokemon given their name, element, health points, and moves with their corresponding damage """
