@@ -23,10 +23,11 @@ for row in reader_2:
 class Pokemon:
     """Represents a Pokemon given their name, element, health points, and moves with their corresponding damage """
 
-    def __init__(self, name, element, health, moves):
+    def __init__(self, name, element, health, speed, moves):
         self._name = name
         self._element = element
         self._health = health
+        self._speed = speed
         self._moves = moves  # dictionary of moves and attack damage and accuracy
         self._battle_ready = True
 
@@ -41,6 +42,9 @@ class Pokemon:
     def get_health(self):
         """return health points value of the pokemon"""
         return self._health
+
+    def get_speed(self):
+        return self._speed
 
     def get_moves(self):
         """returns dictionary of move name as key and its damage as the value"""
@@ -85,9 +89,13 @@ class Pokemon:
         """updates new health after healing with potion"""
         self._health += health_points
 
-    def check_pokemon_availability(self):
+    def get_availability(self):
         """returns boolean that determines if pokemon is available to battle"""
         return self._battle_ready
+
+    def update_availability(self):
+        self._battle_ready = False
+
 
 
 class Bag:
@@ -147,7 +155,7 @@ class Trainer:
 
         for pokemon in self.get_pokemon_dic():
             pokemon_object = self.get_pokemon_object(pokemon)
-            if pokemon_object.check_pokemon_availability():
+            if pokemon_object.get_availability():
                 trainer_pokemon_count += 1
         print(f"DEBUG: trainer pokemon availability count {trainer_pokemon_count}")
 
@@ -178,6 +186,9 @@ class PokemonBattle:
         self._wager = wager
         self._is_battle = True
 
+    def quit_battle(self):
+        self._is_battle = False
+
     def still_playing(self, trainer):
         """verifies whether the trainer can continue battling by returning a boolean"""
         available_pokemon = 0
@@ -185,37 +196,27 @@ class PokemonBattle:
 
         for pokemon in trainer_pokemon:
             pokemon_object = trainer.get_pokemon_object(pokemon)
-            if pokemon_object.check_pokemon_availability():
+            if pokemon_object.get_availability():
                 available_pokemon += 1
         if available_pokemon == 0:
             self._is_battle = False
 
-    def battle(self):
-        """Until one of the trainers do not have any pokemon available for battle or the user forfeits the match,
-        the trainers' pokemon will alternate attacks."""
-
-        # introduce starting pokemon from player and trainer
+    def pokemon_vs(self, player_pokemon):
+        # creates pokemon object for trainer and user
         trainer_pokemon = random.choice(self._trainer.get_pokemon_list())
-        trainer_pokemon_object = self._trainer.get_pokemon_object(trainer_pokemon.capitalize())
 
-        # introduce trainer and their initial pokemon
-        print(f"\nYou are challenged by Leader {self._trainer.get_trainer_name()}!")
-        print(f"Leader {self._trainer.get_trainer_name()} sent out {trainer_pokemon.upper()}!")
+        trainer_pokemon_object = self._trainer.get_pokemon_object(trainer_pokemon.capitalize())
+        player_pokemon_object = self._player.get_pokemon_object(player_pokemon.capitalize())
+
+        # displays trainer's pokemon
+        print(f"\nLeader {self._trainer.get_trainer_name()} sent out {trainer_pokemon.upper()}!")
         print(f"Leader {self._trainer.get_trainer_name()}'s {trainer_pokemon.upper()}: "
               f"{trainer_pokemon_object.get_health_bar()}")
-
-        # displays pokemon list and user chooses their initial pokemon
-        print(f"\nHere is your Pokemon list: {self._player.get_pokemon_list()}!")
-        player_pokemon = input("Who do you want to take out for battle? ")
-        player_pokemon_object = self._player.get_pokemon_object(player_pokemon.capitalize())
 
         # DEBUG: if user spells incorrectly
         print(f"\n{self._player.get_trainer_name()}: I choose you, {player_pokemon.upper()}!")
         print(f"{self._player.get_trainer_name()}'s {player_pokemon.upper()}: "
               f"{player_pokemon_object.get_health_bar()}")
-
-        # determines which move number we are in. helps determine which trainer attacks
-        move_count = 1
 
         # display initial health bar
         print(pokemon_sign)
@@ -224,10 +225,16 @@ class PokemonBattle:
         print(f"{self._player.get_trainer_name()}'s {player_pokemon.upper()}: "
               f"{player_pokemon_object.get_health_bar()}")
 
-        while self._is_battle:
+        # determines which move number we are in. helps determine which trainer attacks
+        if player_pokemon_object.get_speed() > trainer_pokemon_object.get_speed():
+            move_count = 1
+        else:
+            move_count = 0
+
+        while player_pokemon_object.get_availability() and trainer_pokemon_object.get_availability():
             # create separate function to display health
 
-            if move_count % 2 != 0:
+            if move_count % 2 == 0:
                 # trainer attacks
                 trainer_attack = random.choice(trainer_pokemon_object.get_moves_list())
                 print(f"\nLeader {self._trainer.get_trainer_name()}'s {trainer_pokemon.upper()} used {trainer_attack}!")
@@ -235,9 +242,7 @@ class PokemonBattle:
 
                 # update player's health
                 trainer_damage = trainer_pokemon_object.get_attack_damage(trainer_attack)
-                player_pokemon_object.lose_health(trainer_damage)
-                self.still_playing(self._player)
-                move_count += 1
+                player_pokemon_object.lose_health(trainer_damage)  # availability will change if it hits 0
 
             else:
                 # player action list
@@ -245,19 +250,19 @@ class PokemonBattle:
                 print(player_action_list)
                 player_action = input("What will you do trainer? Input a number to select action: ")
 
-                # player decides to run # WHY IS IT NOT WORKING
-                if player_action == 3:
+                if player_action == "3":
                     self._player.choose_forfeit()
-                    self._is_battle = False
+                    player_pokemon_object.update_availability()
+                    # stop the while loop
 
+                elif player_action == "2":
+                    print("\nBAG is currently empty. You spent too much time rummaging.")  # come back to this
 
-                # bag
-                #fight
-                else:
+                elif player_action == "1":
                     # player's pokemon's move list
                     print(f"\n{player_pokemon.upper()}'s moves: ")
                     for moves in player_pokemon_object.get_moves_list():
-                        print(f"{player_pokemon_object.get_moves_list().index(moves)+1}. {moves}")
+                        print(f"{player_pokemon_object.get_moves_list().index(moves) + 1}. {moves}")
 
                     # player chooses pokemon move
                     player_attack_num = input(f"What will {player_pokemon.upper()} do? Input a number to select move: ")
@@ -269,15 +274,11 @@ class PokemonBattle:
                     # update trainer's health
                     player_damage = player_pokemon_object.get_attack_damage(player_attack)
                     trainer_pokemon_object.lose_health(player_damage)
-                    print(f"DEBUG1: is opponent battle ready {self._trainer.get_battle_ready()}")
-                    self.still_playing(self._trainer)
-                    print(f"DEBUG2: is opponent battle ready {self._trainer.get_battle_ready()}")
-                    print(f"DEBUG3: is opponent's pokemon ready? {trainer_pokemon_object.check_pokemon_availability()}")
-                    print(f"DEBUG4: who is in opponenet's pokemon list? {self._trainer.get_pokemon_list}")
-                    move_count += 1
+                else:
+                    print("You didn't type a number from the option, so you couldn't make a decision.")
 
-            # display updated health bar
-            print(f"\n"*2)
+            move_count += 1
+            print(f"\n" * 2)
             print(f"\nLeader {self._trainer.get_trainer_name()}'s {trainer_pokemon.upper()}: "
                   f"{trainer_pokemon_object.get_health_bar()}")
             print(f"{self._player.get_trainer_name()}'s {player_pokemon.upper()}: "
@@ -285,14 +286,31 @@ class PokemonBattle:
 
         # displays the outcome of the battle
         if self._player.get_forfeit():
-            print(f"\n{self._player.get_trainer_name()} forfeits. "
-                  f"Leader {self._trainer.get_trainer_name()} wins the match!")
-        elif self._trainer.get_battle_ready():
-            print(f"{self._player.get_trainer_name()}'s pokemon are unable to battle.")
-            print(f"\nLeader {self._trainer.get_trainer_name()} wins the match!")
-        else:
-            print(f"{self._trainer.get_trainer_name()}'s pokemon are unable to battle.")
-            print(f"\n{self._player.get_trainer_name()} wins the match!")
+            print(f"\n{self._player.get_trainer_name()} forfeits.")
+
+        elif not player_pokemon_object.get_availability():
+            print(f"\n{self._player.get_trainer_name()}'s {player_pokemon.upper()} is unable to battle.")
+
+        elif not trainer_pokemon_object.get_availability():
+            print(f"\n{self._trainer.get_trainer_name()}'s {trainer_pokemon.upper()} is unable to battle.")
+
+    def trainer_vs(self):
+        print(f"\nYou are challenged by Leader {self._trainer.get_trainer_name()}!")
+
+        while self._is_battle:
+            print(f"\nHere is your Pokemon list: {self._player.get_pokemon_list()}!")
+            player_pokemon = input("Who do you want to take out for battle? ")
+            self.pokemon_vs(player_pokemon)
+
+            if self._player.get_forfeit():
+                self.quit_battle()
+                print("Because you ran away from battle. You owe $$$.") # determine cost
+            elif not self._player.get_battle_ready():
+                self.quit_battle()
+                print("None of your pokemon can battle. You have lost. You owe $$$")
+            elif not self._trainer.get_battle_ready():
+                print("You won the battle. You earn $$$")
+                self.quit_battle()
 
 
 
@@ -301,9 +319,13 @@ class PokemonBattle:
 
 
 
-Charizard = Pokemon('Charizard', 'Fire', 100, {'Flamethrower': 20, 'Fly': 15, 'Blast Burn': 40, 'Fire Punch': 30})
-Blastoise = Pokemon('Blastoise', 'Water', 90, {'Water Gun': 20, 'Bubblebeam': 10, 'Hydro Pump': 40, 'Surf': 30})
-Venusaur = Pokemon('Venusaur', 'Grass', 120, {'Vine Wip': 20, 'Razor Leaf': 10, 'Earthquake': 40, 'Frenzy Plant': 30})
+
+
+
+
+Charizard = Pokemon('Charizard', 'Fire', 100, 100, {'Flamethrower': 20, 'Fly': 15, 'Blast Burn': 40, 'Fire Punch': 30})
+Blastoise = Pokemon('Blastoise', 'Water', 90, 60, {'Water Gun': 20, 'Bubblebeam': 10, 'Hydro Pump': 40, 'Surf': 30})
+Venusaur = Pokemon('Venusaur', 'Grass', 120, 30, {'Vine Wip': 20, 'Razor Leaf': 10, 'Earthquake': 40, 'Frenzy Plant': 30})
 
 player_name = input("Player, what is your name? ")
 player_object = Trainer(player_name)
@@ -318,6 +340,7 @@ water_trainer = Trainer("Moisty")
 water_trainer.add_pokemon(Blastoise)
 
 game = PokemonBattle(player_object, grass_trainer, 10)
-game.battle()
+game.trainer_vs()
+
 
 
